@@ -3,14 +3,13 @@ FROM centos:7
 # Set the local timezone
 ENV TIMEZONE="America/New_York"
 # Set a unique cache serial
-ENV REFRESHED_AT="2019-01-12"
+ENV REFRESHED_AT="2019-01-13"
 # Supervisor start delay
 ENV SUPERVISOR_DELAY=15
 
-# Install daemon packages
-RUN yum -y install epel-release && yum -y install supervisor syslog-ng cronie
-# Install base packages
-RUN yum -y install wget vim-enhanced net-tools rsync sudo mlocate git logrotate
+# Install daemon packages# Install base packages
+RUN yum -y install epel-release && yum -y install supervisor syslog-ng cronie && \
+    yum -y install wget vim-enhanced net-tools rsync sudo mlocate git logrotate 
 
 # Configure Syslog-NG for use in a Docker container
 RUN sed -i 's|system();|unix-stream("/dev/log");|g' /etc/syslog-ng/syslog-ng.conf
@@ -23,16 +22,15 @@ RUN { echo "[mariadb]"; echo "name = MariaDB"; echo "baseurl = http://yum.mariad
 RUN { echo '#!/bin/bash'; \
       echo "[[ \`pidof /usr/sbin/mysqld\` == \"\" ]] && /usr/bin/mysqld_safe &"; \
       echo "export SQL_TO_LOAD='/mysql_load_on_first_boot.sql';"; echo "while true; do"; \
-      echo "if [[ \`find /var/lib/mysql -type d | wc -l\` == \"4\" ]]; then sleep 5"; \
+      echo "if [[ -e \"$SQL_TO_LOAD\" ]]; then sleep 5"; \
       echo " /usr/bin/mysql -u root --password='' < \$SQL_TO_LOAD && mv \$SQL_TO_LOAD \$SQL_TO_LOAD.loaded; fi"; \
       echo "sleep 10;"; echo "done"; \
-    } | tee /start-mysqld.sh && chmod a+x /start-mysqld.sh   
+    } | tee /start-mysqld.sh   
 
-# Install Webtatic YUM REPO + Webtatic PHP7, 
+# Install Webtatic YUM REPO + Webtatic PHP7, # Install Apache & Webtatic mod_php support 
 RUN wget https://mirror.webtatic.com/yum/el7/webtatic-release.rpm && \
-    yum -y localinstall webtatic-release.rpm && yum -y install php72w-cli
-# Install Apache & Webtatic mod_php support
-RUN yum -y install httpd mod_php72w php72w-opcache php72w-mysqli php72w-curl && \
+    yum -y localinstall webtatic-release.rpm && \
+    yum -y install php72w-cli httpd mod_php72w php72w-opcache php72w-mysqli php72w-curl && \
     rm -rf /etc/httpd/conf.d/welcome.conf
 
 # Create Cron start script    
@@ -54,7 +52,7 @@ RUN { echo '#!/bin/bash'; \
 
 # Create start_supervisor.sh script
 RUN { echo "#!/bin/bash"; \
-      echo "sleep ${SUPERVISOR_DELAY}"; \
+      echo "sleep ${SUPERVISOR_DELAY}"; 
       echo "/usr/bin/supervisord -c /etc/supervisord.conf"; \
     } | tee /start_supervisor.sh       
     
