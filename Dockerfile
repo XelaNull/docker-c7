@@ -49,7 +49,7 @@ RUN { echo '[supervisord]';\
 RUN { echo '#!/bin/bash'; \
       echo 'echo "[program:$1]";'; echo 'echo "process_name=$1";'; \
       echo 'echo "autostart=true";'; echo 'echo "autorestart=false";'; \
-      echo 'echo "directory=/";'; echo 'echo "command=$3";'; \
+      echo 'echo "directory=/";'; echo 'echo "command=$2";'; \
       echo 'echo "startsecs=3";'; echo 'echo "priority=1";'; echo 'echo "";'; \
     } | tee /gen_sup.sh
 
