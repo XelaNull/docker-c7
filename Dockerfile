@@ -20,6 +20,7 @@ RUN { echo "[mariadb]"; echo "name = MariaDB"; echo "baseurl = http://yum.mariad
     } | tee /etc/yum.repos.d/MariaDB-10.3.repo && yum -y install MariaDB-server MariaDB-client
 # Create MySQL Start Script
 RUN { echo '#!/bin/bash'; \
+      echo "/usr/bin/sleep 10"; \
       echo "[[ \`pidof /usr/sbin/mysqld\` == \"\" ]] && /usr/bin/mysqld_safe &"; \
       echo "sleep 5"; \
       echo "export SQL_TO_LOAD='/mysql_load_on_first_boot.sql';"; 
@@ -36,7 +37,7 @@ RUN wget https://mirror.webtatic.com/yum/el7/webtatic-release.rpm && \
     rm -rf /etc/httpd/conf.d/welcome.conf
 
 # Create Cron start script    
-RUN { echo '#!/bin/bash'; echo '/usr/sbin/crond -n'; } | tee /start_crond.sh    
+RUN { echo '#!/bin/bash'; echo '/usr/bin/sleep 60 && /usr/sbin/crond -n'; } | tee /start_crond.sh    
     
 # Create beginning of supervisord.conf file
 RUN { echo '[supervisord]';\
@@ -48,7 +49,7 @@ RUN { echo '[supervisord]';\
 RUN { echo '#!/bin/bash'; \
       echo 'echo "[program:$1]";'; echo 'echo "process_name=$1";'; \
       echo 'echo "autostart=true";'; echo 'echo "autorestart=false";'; \
-      echo 'echo "directory=/";'; echo 'echo "command=sleep $2 && $3";'; \
+      echo 'echo "directory=/";'; echo 'echo "command=$3";'; \
       echo 'echo "startsecs=3";'; echo 'echo "priority=1";'; echo 'echo "";'; \
     } | tee /gen_sup.sh
 
@@ -57,15 +58,18 @@ RUN { echo "#!/bin/bash"; \
       echo "sleep ${SUPERVISOR_DELAY}"; \
       echo "/usr/bin/supervisord -c /etc/supervisord.conf"; \
     } | tee /start_supervisor.sh       
+
+# Create syslog-ng start script    
+RUN { echo '#!/bin/bash'; echo '/usr/bin/sleep 5 && /usr/sbin/syslog-ng --no-caps -F -p /var/run/syslogd.pid'; } | tee /start_syslog-ng.sh        
     
 # Ensure all packages are up-to-date, then fully clean out all cache
 RUN chmod a+x /*.sh && yum -y update && yum clean all && rm -rf /tmp/* && rm -rf /var/tmp/*    
     
 # Create different supervisor entries
-RUN /gen_sup.sh httpd 1 "/usr/sbin/apachectl -D FOREGROUND" >> /etc/supervisord.conf && \
-    /gen_sup.sh syslog-ng 5 "/usr/sbin/syslog-ng --no-caps -F -p /var/run/syslogd.pid" >> /etc/supervisord.conf && \
-    /gen_sup.sh mysqld 10 "/start-mysqld.sh" >> /etc/supervisord.conf && \
-    /gen_sup.sh crond 60 "/start_crond.sh" >> /etc/supervisord.conf  
+RUN /gen_sup.sh httpd "/usr/sbin/httpd -c \"ErrorLog /dev/stdout\" -DFOREGROUND" >> /etc/supervisord.conf && \
+    /gen_sup.sh syslog-ng "/start_syslog-ng.sh" >> /etc/supervisord.conf && \
+    /gen_sup.sh mysqld "/start-mysqld.sh" >> /etc/supervisord.conf && \
+    /gen_sup.sh crond "/start_crond.sh" >> /etc/supervisord.conf  
 
 # Set to start the supervisor daemon on bootup
 ENTRYPOINT ["/start_supervisor.sh"]
