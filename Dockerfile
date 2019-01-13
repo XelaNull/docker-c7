@@ -23,7 +23,7 @@ RUN { echo '#!/bin/bash'; \
       echo "/usr/bin/sleep 10"; \
       echo "[[ \`pidof /usr/sbin/mysqld\` == \"\" ]] && /usr/bin/mysqld_safe &"; \
       echo "sleep 5"; \
-      echo "export SQL_TO_LOAD='/mysql_load_on_first_boot.sql';"; 
+      echo "export SQL_TO_LOAD='/mysql_load_on_first_boot.sql';"; \
       echo "while true; do"; \
       echo "if [[ -e \"$SQL_TO_LOAD\" ]]; then"; \
       echo " /usr/bin/mysql -u root --password='' < \$SQL_TO_LOAD && mv \$SQL_TO_LOAD \$SQL_TO_LOAD.loaded; fi"; \
