@@ -5,7 +5,7 @@ ENV TIMEZONE="America/New_York"
 # Set a unique cache serial
 ENV REFRESHED_AT="2019-01-13"
 # Supervisor start delay
-ENV SUPERVISOR_DELAY=15
+ENV SUPERVISOR_DELAY=10
 
 # Install daemon packages# Install base packages
 RUN yum -y install epel-release && yum -y install supervisor syslog-ng cronie && \
@@ -21,8 +21,10 @@ RUN { echo "[mariadb]"; echo "name = MariaDB"; echo "baseurl = http://yum.mariad
 # Create MySQL Start Script
 RUN { echo '#!/bin/bash'; \
       echo "[[ \`pidof /usr/sbin/mysqld\` == \"\" ]] && /usr/bin/mysqld_safe &"; \
-      echo "export SQL_TO_LOAD='/mysql_load_on_first_boot.sql';"; echo "while true; do"; \
-      echo "if [[ -e \"$SQL_TO_LOAD\" ]]; then sleep 5"; \
+      echo "sleep 5"; \
+      echo "export SQL_TO_LOAD='/mysql_load_on_first_boot.sql';"; 
+      echo "while true; do"; \
+      echo "if [[ -e \"$SQL_TO_LOAD\" ]]; then"; \
       echo " /usr/bin/mysql -u root --password='' < \$SQL_TO_LOAD && mv \$SQL_TO_LOAD \$SQL_TO_LOAD.loaded; fi"; \
       echo "sleep 10;"; echo "done"; \
     } | tee /start-mysqld.sh   
@@ -46,7 +48,7 @@ RUN { echo '[supervisord]';\
 RUN { echo '#!/bin/bash'; \
       echo 'echo "[program:$1]";'; echo 'echo "process_name=$1";'; \
       echo 'echo "autostart=true";'; echo 'echo "autorestart=false";'; \
-      echo 'echo "directory=/";'; echo 'echo "command=$2";'; \
+      echo 'echo "directory=/";'; echo 'echo "command=sleep $2 && $3";'; \
       echo 'echo "startsecs=3";'; echo 'echo "priority=1";'; echo 'echo "";'; \
     } | tee /gen_sup.sh
 
@@ -60,10 +62,10 @@ RUN { echo "#!/bin/bash"; \
 RUN chmod a+x /*.sh && yum -y update && yum clean all && rm -rf /tmp/* && rm -rf /var/tmp/*    
     
 # Create different supervisor entries
-RUN /gen_sup.sh syslog-ng "/usr/sbin/syslog-ng --no-caps -F -p /var/run/syslogd.pid" >> /etc/supervisord.conf && \
-    /gen_sup.sh crond "/start_crond.sh" >> /etc/supervisord.conf && \
-    /gen_sup.sh httpd "/usr/sbin/apachectl -D FOREGROUND" >> /etc/supervisord.conf && \
-    /gen_sup.sh mysqld "/start-mysqld.sh" >> /etc/supervisord.conf 
+RUN /gen_sup.sh httpd 1 "/usr/sbin/apachectl -D FOREGROUND" >> /etc/supervisord.conf && \
+    /gen_sup.sh syslog-ng 5 "/usr/sbin/syslog-ng --no-caps -F -p /var/run/syslogd.pid" >> /etc/supervisord.conf && \
+    /gen_sup.sh mysqld 10 "/start-mysqld.sh" >> /etc/supervisord.conf && \
+    /gen_sup.sh crond 60 "/start_crond.sh" >> /etc/supervisord.conf  
 
 # Set to start the supervisor daemon on bootup
 ENTRYPOINT ["/start_supervisor.sh"]
