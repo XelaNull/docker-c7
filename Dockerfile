@@ -5,11 +5,10 @@ ENV TIMEZONE="America/New_York"
 # Set a unique cache serial
 ENV REFRESHED_AT="2019-01-12"
 # Supervisor start delay
-ENV SUPERVISOR_DELAY=30
+ENV SUPERVISOR_DELAY=15
 
 # Install daemon packages
-RUN yum -y install epel-release
-RUN yum -y install supervisor syslog-ng cronie
+RUN yum -y install epel-release && yum -y install supervisor syslog-ng cronie
 # Install base packages
 RUN yum -y install wget vim-enhanced net-tools rsync sudo mlocate git logrotate
 
@@ -37,7 +36,6 @@ RUN yum -y install httpd mod_php72w php72w-opcache php72w-mysqli && \
     rm -rf /etc/httpd/conf.d/welcome.conf
 
 # Create Cron start script    
-#RUN { echo '#!/bin/bash'; echo 'sleep 30 && /usr/sbin/crond -n'; } | tee /start_crond.sh    
 RUN { echo '#!/bin/bash'; echo '/usr/sbin/crond -n'; } | tee /start_crond.sh    
     
 # Create beginning of supervisord.conf file
@@ -60,15 +58,14 @@ RUN { echo "#!/bin/bash"; \
       echo "/usr/bin/supervisord -c /etc/supervisord.conf"; \
     } | tee /start_supervisor.sh       
     
+# Ensure all packages are up-to-date, then fully clean out all cache
+RUN chmod a+x /*.sh && yum -y update && yum clean all && rm -rf /tmp/* && rm -rf /var/tmp/*    
+    
 # Create different supervisor entries
-RUN chmod a+x /*.sh && \
-    /gen_sup.sh syslog-ng "/usr/sbin/syslog-ng --no-caps -F -p /var/run/syslogd.pid" >> /etc/supervisord.conf && \
+RUN /gen_sup.sh syslog-ng "/usr/sbin/syslog-ng --no-caps -F -p /var/run/syslogd.pid" >> /etc/supervisord.conf && \
     /gen_sup.sh crond "/start_crond.sh" >> /etc/supervisord.conf && \
     /gen_sup.sh httpd "/usr/sbin/apachectl -D FOREGROUND" >> /etc/supervisord.conf && \
     /gen_sup.sh mysqld "/start-mysqld.sh" >> /etc/supervisord.conf 
-
-# Ensure all packages are up-to-date, then fully clean out all cache
-RUN yum -y update && yum clean all && rm -rf /tmp/* && rm -rf /var/tmp/*
 
 # Set to start the supervisor daemon on bootup
 ENTRYPOINT ["/start_supervisor.sh"]
