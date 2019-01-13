@@ -52,7 +52,7 @@ RUN { echo '#!/bin/bash'; \
 
 # Create start_supervisor.sh script
 RUN { echo "#!/bin/bash"; \
-      echo "sleep ${SUPERVISOR_DELAY}"; 
+      echo "sleep ${SUPERVISOR_DELAY}"; \
       echo "/usr/bin/supervisord -c /etc/supervisord.conf"; \
     } | tee /start_supervisor.sh       
     
