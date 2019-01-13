@@ -32,7 +32,7 @@ RUN { echo '#!/bin/bash'; \
 RUN wget https://mirror.webtatic.com/yum/el7/webtatic-release.rpm && \
     yum -y localinstall webtatic-release.rpm && yum -y install php72w-cli
 # Install Apache & Webtatic mod_php support
-RUN yum -y install httpd mod_php72w php72w-opcache php72w-mysqli && \
+RUN yum -y install httpd mod_php72w php72w-opcache php72w-mysqli php72w-curl && \
     rm -rf /etc/httpd/conf.d/welcome.conf
 
 # Create Cron start script    
