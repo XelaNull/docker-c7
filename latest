@@ -1,5 +1,5 @@
 #!/bin/bash
-
+# curl -o latest -L https://raw.githubusercontent.com/XelaNull/docker-c7/master/latest && sh latest
 yum -y install docker git vim-enhanced && systemctl enable docker && \
 dd if=/dev/zero of=/swapfile bs=1024 count=1048576 && mkswap /swapfile && chmod 600 /swapfile && swapon /swapfile && \
 cd /var/lib && mv docker /mnt/volume_*/ && ln -s /mnt/volume_*/docker && systemctl start docker && cd ~
