@@ -33,6 +33,8 @@ RUN yum -y localinstall https://mirror.webtatic.com/yum/el7/webtatic-release.rpm
 
 # Create beginning of supervisord.conf file
 RUN printf '[supervisord]\nnodaemon=true\nuser=root\nlogfile=/var/log/supervisord\n' > /etc/supervisord.conf && \
+# Create start_httpd.sh script
+    printf '#!/bin/bash\n[[ -e /var/httpd/httpd.pid ]] && rm -rf /run/httpd/httpd.pid\n/usr/sbin/httpd -c "ErrorLog /dev/stdout" -DFOREGROUND' > /start_httpd.sh && \
 # Create start_supervisor.sh script
     printf '#!/bin/bash\nsleep ${SUPERVISOR_DELAY}\n/usr/bin/supervisord -c /etc/supervisord.conf' > /start_supervisor.sh && \
 # Create syslog-ng start script    
@@ -48,7 +50,7 @@ echo "command       = $2";\necho "startsecs     = 3";\necho "priority      = 1";
 RUN chmod a+x /*.sh && yum -y update && yum clean all && rm -rf /tmp/* && rm -rf /var/tmp/*    
     
 # Create different supervisor entries
-RUN /gen_sup.sh httpd "/usr/sbin/httpd -c \"ErrorLog /dev/stdout\" -DFOREGROUND" >> /etc/supervisord.conf && \
+RUN /gen_sup.sh httpd "/start_httpd.sh" >> /etc/supervisord.conf && \
     /gen_sup.sh syslog-ng "/start_syslog-ng.sh" >> /etc/supervisord.conf && \
     /gen_sup.sh mysqld "/start_mysqld.sh" >> /etc/supervisord.conf && \
     /gen_sup.sh crond "/start_crond.sh" >> /etc/supervisord.conf  
