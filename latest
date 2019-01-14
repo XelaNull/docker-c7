@@ -7,7 +7,7 @@ if [ ! -f /swapfile ]; then
 fi
 
 if [[ `df /var | tail -1 | awk '{print $4}'` < 30000000 ]] && [[ ! -L "/var/lib/docker" ]] && [[ `ls -l /mnt/volume_*` != "" ]]; then
-  systemctl stop docker && cd /var/lib && mv docker /mnt/volume_*/ && ln -s /mnt/volume_*/docker
+  systemctl stop docker && cd /var/lib && (rm -rf /mnt/volume_*/docker || true) && mv docker /mnt/volume_*/ && ln -s /mnt/volume_*/docker
 fi
 
 rm -rf docker-c7 docker-c7-rtorrent-flood
