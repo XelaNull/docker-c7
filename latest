@@ -1,14 +1,13 @@
 # curl -o latest -L https://raw.githubusercontent.com/XelaNull/docker-c7/master/latest && sh latest
 
-systemctl stop docker
 yum -y install docker git vim-enhanced && systemctl enable docker
 
 if [ ! -f /swapfile ]; then
   dd if=/dev/zero of=/swapfile bs=1024 count=1048576 && mkswap /swapfile && chmod 600 /swapfile && swapon /swapfile
 fi
 
-if [[ `df /var | tail -1 | awk '{print $4}'` < 30000000 ]] && [[ ! -L "/var/lib/docker" ]]; then
-  cd /var/lib && mv docker /mnt/volume_*/ && ln -s /mnt/volume_*/docker
+if [[ `df /var | tail -1 | awk '{print $4}'` < 30000000 ]] && [[ ! -L "/var/lib/docker" ]] && [[ `ls -l /mnt/volume_*` != "" ]]; then
+  systemctl stop docker && cd /var/lib && mv docker /mnt/volume_*/ && ln -s /mnt/volume_*/docker
 fi
 
 rm -rf docker-c7 docker-c7-rtorrent-flood
