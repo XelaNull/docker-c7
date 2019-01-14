@@ -42,7 +42,7 @@ RUN printf '[supervisord]\nnodaemon=true\nuser=root\nlogfile=/var/log/supervisor
 # Create script to add more supervisor boot-time entries
     echo $'#!/bin/bash \necho "[program:$1]";\necho "process_name  = $1";\n\
 echo "autostart     = true";\necho "autorestart   = false";\necho "directory     = /";\n\
-echo "command       = $2";\necho"startsecs     = 3";\necho "priority      = 1";\n\n' > /gen_sup.sh
+echo "command       = $2";\necho "startsecs     = 3";\necho "priority      = 1";\n\n' > /gen_sup.sh
 
 # Ensure all packages are up-to-date, then fully clean out all cache
 RUN chmod a+x /*.sh && yum -y update && yum clean all && rm -rf /tmp/* && rm -rf /var/tmp/*    
