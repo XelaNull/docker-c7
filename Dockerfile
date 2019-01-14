@@ -3,72 +3,54 @@ FROM centos:7
 # Set the local timezone
 ENV TIMEZONE="America/New_York"
 # Set a unique cache serial
-ENV REFRESHED_AT="2019-01-13"
+ENV REFRESHED_AT="2019-01-14"
 # Supervisor start delay
 ENV SUPERVISOR_DELAY=10
 
 # Install daemon packages# Install base packages
-RUN yum -y install epel-release && yum -y install supervisor syslog-ng cronie && \
-    yum -y install wget vim-enhanced net-tools rsync sudo mlocate git logrotate 
-
+RUN yum -y install epel-release && yum -y install supervisor syslog-ng cronie \
+    wget vim-enhanced net-tools rsync sudo mlocate git logrotate && \
 # Configure Syslog-NG for use in a Docker container
-RUN sed -i 's|system();|unix-stream("/dev/log");|g' /etc/syslog-ng/syslog-ng.conf
+    sed -i 's|system();|unix-stream("/dev/log");|g' /etc/syslog-ng/syslog-ng.conf
 
 # Install newest stable MariaDB: 10.3 
-RUN { echo "[mariadb]"; echo "name = MariaDB"; echo "baseurl = http://yum.mariadb.org/10.3/centos7-amd64"; \
-      echo "gpgkey=https://yum.mariadb.org/RPM-GPG-KEY-MariaDB"; echo "gpgcheck=1"; \
-    } | tee /etc/yum.repos.d/MariaDB-10.3.repo && yum -y install MariaDB-server MariaDB-client
+RUN printf '[mariadb]\nname = MariaDB\nbaseurl = http://yum.mariadb.org/10.3/centos7-amd64\n\
+gpgkey=https://yum.mariadb.org/RPM-GPG-KEY-MariaDB\ngpgcheck=1' > /etc/yum.repos.d/MariaDB-10.3.repo && \
+    yum -y install MariaDB-server MariaDB-client
 # Create MySQL Start Script
-RUN { echo '#!/bin/bash'; \
-      echo "/usr/bin/sleep 10"; \
-      echo "[[ \`pidof /usr/sbin/mysqld\` == \"\" ]] && /usr/bin/mysqld_safe &"; \
-      echo "sleep 5"; \
-      echo "export SQL_TO_LOAD='/mysql_load_on_first_boot.sql';"; \
-      echo "while true; do"; \
-      echo "if [[ -e \"$SQL_TO_LOAD\" ]]; then"; \
-      echo " /usr/bin/mysql -u root --password='' < \$SQL_TO_LOAD && mv \$SQL_TO_LOAD \$SQL_TO_LOAD.loaded; fi"; \
-      echo "sleep 10;"; echo "done"; \
-    } | tee /start-mysqld.sh   
+RUN echo $'#!/bin/bash\n/usr/bin/sleep 10\n\
+[[ `pidof /usr/sbin/mysqld` == "" ]] && /usr/bin/mysqld_safe &\nsleep 5\n\
+export SQL_TO_LOAD="/mysql_load_on_first_boot.sql"\n\
+while true; do\n\
+  if [[ -e "$SQL_TO_LOAD" ]]; then /usr/bin/mysql -u root --password=\'\' < $SQL_TO_LOAD && mv $SQL_TO_LOAD $SQL_TO_LOAD.loaded; fi\n\
+  sleep 10\n\
+done\n' > /start_mysqld.sh   
 
 # Install Webtatic YUM REPO + Webtatic PHP7, # Install Apache & Webtatic mod_php support 
-RUN wget https://mirror.webtatic.com/yum/el7/webtatic-release.rpm && \
-    yum -y localinstall webtatic-release.rpm && \
+RUN yum -y localinstall https://mirror.webtatic.com/yum/el7/webtatic-release.rpm && \
     yum -y install php72w-cli httpd mod_php72w php72w-opcache php72w-mysqli php72w-curl && \
     rm -rf /etc/httpd/conf.d/welcome.conf
 
-# Create Cron start script    
-RUN { echo '#!/bin/bash'; echo '/usr/bin/sleep 60 && /usr/sbin/crond -n'; } | tee /start_crond.sh    
-    
 # Create beginning of supervisord.conf file
-RUN { echo '[supervisord]';\
-      echo 'nodaemon=true';\
-      echo 'user=root';\
-      echo 'logfile=/var/log/supervisord';\
-    } | tee /etc/supervisord.conf
-# Create script to add more supervisor boot-time entries
-RUN { echo '#!/bin/bash'; \
-      echo 'echo "[program:$1]";'; echo 'echo "process_name=$1";'; \
-      echo 'echo "autostart=true";'; echo 'echo "autorestart=false";'; \
-      echo 'echo "directory=/";'; echo 'echo "command=$2";'; \
-      echo 'echo "startsecs=3";'; echo 'echo "priority=1";'; echo 'echo "";'; \
-    } | tee /gen_sup.sh
-
+RUN printf '[supervisord]\nnodaemon=true\nuser=root\nlogfile=/var/log/supervisord\n' > /etc/supervisord.conf && \
 # Create start_supervisor.sh script
-RUN { echo "#!/bin/bash"; \
-      echo "sleep ${SUPERVISOR_DELAY}"; \
-      echo "/usr/bin/supervisord -c /etc/supervisord.conf"; \
-    } | tee /start_supervisor.sh       
-
+    printf '#!/bin/bash\nsleep ${SUPERVISOR_DELAY}\n/usr/bin/supervisord -c /etc/supervisord.conf' > /start_supervisor.sh && \
 # Create syslog-ng start script    
-RUN { echo '#!/bin/bash'; echo '/usr/bin/sleep 5 && /usr/sbin/syslog-ng --no-caps -F -p /var/run/syslogd.pid'; } | tee /start_syslog-ng.sh        
-    
+    printf '#!/bin/bash\n/usr/bin/sleep 5 && /usr/sbin/syslog-ng --no-caps -F -p /var/run/syslogd.pid' > /start_syslog-ng.sh && \
+# Create Cron start script    
+    printf '#!/bin/bash\n/usr/bin/sleep 60 && /usr/sbin/crond -n\n' > /start_crond.sh && \
+# Create script to add more supervisor boot-time entries
+    echo $'#!/bin/bash \necho "[program:$1]";\necho "process_name  = $1";\n\
+echo "autostart     = true";\necho "autorestart   = false";\necho "directory     = /";\n\
+echo "command       = $2";\necho"startsecs     = 3";\necho "priority      = 1";\n\n' > /gen_sup.sh
+
 # Ensure all packages are up-to-date, then fully clean out all cache
 RUN chmod a+x /*.sh && yum -y update && yum clean all && rm -rf /tmp/* && rm -rf /var/tmp/*    
     
 # Create different supervisor entries
 RUN /gen_sup.sh httpd "/usr/sbin/httpd -c \"ErrorLog /dev/stdout\" -DFOREGROUND" >> /etc/supervisord.conf && \
     /gen_sup.sh syslog-ng "/start_syslog-ng.sh" >> /etc/supervisord.conf && \
-    /gen_sup.sh mysqld "/start-mysqld.sh" >> /etc/supervisord.conf && \
+    /gen_sup.sh mysqld "/start_mysqld.sh" >> /etc/supervisord.conf && \
     /gen_sup.sh crond "/start_crond.sh" >> /etc/supervisord.conf  
 
 # Set to start the supervisor daemon on bootup
