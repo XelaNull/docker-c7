@@ -7,7 +7,7 @@ if [ ! -f /swapfile ]; then
   dd if=/dev/zero of=/swapfile bs=1024 count=1048576 && mkswap /swapfile && chmod 600 /swapfile && swapon /swapfile
 fi
 
-if [[ `df /var | tail -1 | awk '{print $4}'` < 30000000 ]] && [[ ! -L "/var/lib/mysql" ]]; then
+if [[ `df /var | tail -1 | awk '{print $4}'` < 30000000 ]] && [[ ! -L "/var/lib/docker" ]]; then
   cd /var/lib && mv docker /mnt/volume_*/ && ln -s /mnt/volume_*/docker
 fi
 
