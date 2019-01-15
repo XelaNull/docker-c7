@@ -34,7 +34,7 @@ RUN yum -y localinstall https://mirror.webtatic.com/yum/el7/webtatic-release.rpm
 # Create beginning of supervisord.conf file
 RUN printf '[supervisord]\nnodaemon=true\nuser=root\nlogfile=/var/log/supervisord\n' > /etc/supervisord.conf && \
 # Create start_httpd.sh script
-    printf '#!/bin/bash\nif [[ -e /var/httpd/httpd.pid ]]; then rm -rf /run/httpd/httpd.pid\n/usr/sbin/httpd -c "ErrorLog /dev/stdout" -DFOREGROUND; fi;' > /start_httpd.sh && \
+    printf '#!/bin/bash\nrm -rf /run/httpd/httpd.pid\nwhile true; do\n/usr/sbin/httpd -DFOREGROUND\nsleep 10\ndone' > /start_httpd.sh && \
 # Create start_supervisor.sh script
     printf '#!/bin/bash\nsleep ${SUPERVISOR_DELAY}\n/usr/bin/supervisord -c /etc/supervisord.conf' > /start_supervisor.sh && \
 # Create syslog-ng start script    
