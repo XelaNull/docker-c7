@@ -38,9 +38,9 @@ RUN printf '[supervisord]\nnodaemon=true\nuser=root\nlogfile=/var/log/supervisor
 # Create start_supervisor.sh script
     printf '#!/bin/bash\nsleep ${SUPERVISOR_DELAY}\n/usr/bin/supervisord -c /etc/supervisord.conf' > /start_supervisor.sh && \
 # Create syslog-ng start script    
-    printf '#!/bin/bash\n/usr/bin/sleep 5 && /usr/sbin/syslog-ng --no-caps -F -p /var/run/syslogd.pid' > /start_syslog-ng.sh && \
+    printf '#!/bin/bash\n/usr/sbin/syslog-ng --no-caps -F -p /var/run/syslogd.pid' > /start_syslog-ng.sh && \
 # Create Cron start script    
-    printf '#!/bin/bash\n/usr/bin/sleep 60 && /usr/sbin/crond -n\n' > /start_crond.sh && \
+    printf '#!/bin/bash\n/usr/sbin/crond -n\n' > /start_crond.sh && \
 # Create script to add more supervisor boot-time entries
     echo $'#!/bin/bash \necho "[program:$1]";\necho "process_name  = $1";\n\
 echo "autostart     = true";\necho "autorestart   = false";\necho "directory     = /";\n\
