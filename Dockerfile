@@ -18,7 +18,7 @@ RUN printf '[mariadb]\nname = MariaDB\nbaseurl = http://yum.mariadb.org/10.3/cen
 gpgkey=https://yum.mariadb.org/RPM-GPG-KEY-MariaDB\ngpgcheck=1' > /etc/yum.repos.d/MariaDB-10.3.repo && \
     yum -y install MariaDB-server MariaDB-client
 # Create MySQL Start Script
-RUN echo $'#!/bin/bash\n/usr/bin/sleep 5\n\
+RUN echo $'#!/bin/bash\n
 [[ `pidof /usr/sbin/mysqld` == "" ]] && /usr/bin/mysqld_safe &\nsleep 5\n\
 export SQL_TO_LOAD="/mysql_load_on_first_boot.sql"\n\
 while true; do\n\
