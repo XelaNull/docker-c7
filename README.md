@@ -15,26 +15,26 @@ This project was born out of a need to have a base-image that is a solid LAMP st
 
 3. MariaDB 10.3: Downloaded directly from MariaDB's YUM repository
 
-  - Supports auto-loading an .sql file if it exists on the filesystem
+  - Supports auto-loading an .sql file(/mysql_load_on_first_boot.sql) if it exists on the filesystem
   - No root MySQL password is set, so it is ready for you to connect to and use!
 
 4. PHP 7.2: Downloaded from Webtatic's YUM repository; mod_php + CLI
 
 --------------------------------------------------------------------------------
 
-## To build JUST this docker-c7 project:
+## To BUILD:
 
 ```
 docker build -t c7/lamp .
 ```
 
-## To run JUST this docker-c7:
+## To RUN:
 
 ```
 docker run -dt -p8080:80 --name=c7-lamp c7/lamp
 ```
 
-## To enter JUST this docker-c7:
+## To ENTER:
 
 ```
 docker exec -it c7-lamp bash
