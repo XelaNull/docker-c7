@@ -28,6 +28,10 @@ This project was born out of a need to have a base-image that is a solid LAMP st
 docker build -t c7/lamp .
 ```
 
+If you are using this as a base for another Dockerfile, you only need to use the build command above.
+
+Otherwise, continue on to RUN and ENTER:
+
 ## To RUN:
 
 ```
