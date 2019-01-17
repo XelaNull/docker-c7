@@ -4,21 +4,21 @@ This project was born out of a need to have a base-image that is a solid LAMP st
 
 ## Installed Packages
 
-1. CentOS 7: Latest at the time you build
+1. **CentOS 7.6**: Latest at the time you build
 
   - supervisor, with CLI script to easily add new applications to config file
   - syslog-ng
   - cron
   - logrotate
 
-2. Apache 2.4.6: Latest from CentOS YUM, at the time you build
+2. **Apache 2.4**: Latest from CentOS YUM, at the time you build
 
-3. MariaDB 10.3: Downloaded directly from MariaDB's YUM repository
+3. **MariaDB 10.3**: Downloaded directly from MariaDB's YUM repository
 
   - Supports auto-loading an .sql file(/mysql_load_on_first_boot.sql) if it exists on the filesystem
   - No root MySQL password is set, so it is ready for you to connect to and use!
 
-4. PHP 7.2: Downloaded from Webtatic's YUM repository; mod_php + CLI
+4. **PHP 7.2**: Downloaded from Webtatic's YUM repository; mod_php + CLI
 
 --------------------------------------------------------------------------------
 
