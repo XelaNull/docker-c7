@@ -2,7 +2,7 @@
 
 This project was born out of a need to have a base-image that is a solid LAMP stack. I wasn't happy with any of the other Dockerfiles I could find that other people have built. I do recognize that this project violates Docker best-practices by combining multiple applications into a single container image. However, I find that using Docker in this manner allows me to create a simple single project that will stand up a containerized image of an application. While not as flexible as a Docker swarm, it is vastly simpler to create and maintain by a user not familiar with Docker swarm.
 
-## Installed Packages
+## Installed L.A.M.P. Packages
 
 1. **CentOS 7.6**: Latest at the time you build
 
