@@ -22,18 +22,6 @@ This project was born out of a need to have a base-image that is a solid LAMP st
 
 --------------------------------------------------------------------------------
 
-This package was originally built for my docker-c7-rtorrent-flood project. As such, this project contains a one-liner script that will fully download, build/compile, both this project and the docker-c7-rtorrent-flood project. This results in an rTorrent+Flood instance that is ready for you to log in and use.
-
-With that said, this is perfectly usable as a CentOS7 LAMP stack to build your Docker application on top of.
-
-## To build the docker-c7 & docker-c7-rtorrent-flood projects
-
-```
-curl -o latest -L https://raw.githubusercontent.com/XelaNull/docker-c7/master/latest && sh latest
-```
-
---------------------------------------------------------------------------------
-
 ## To build JUST this docker-c7 project:
 
 ```
