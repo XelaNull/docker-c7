@@ -43,3 +43,5 @@ docker run -dt -p8080:80 --name=c7-lamp c7/lamp
 ```
 docker exec -it c7-lamp bash
 ```
+
+<https://github.com/XelaNull/docker-c7>
