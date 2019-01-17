@@ -5,7 +5,7 @@ ENV TIMEZONE="America/New_York"
 # Set a unique cache serial
 ENV REFRESHED_AT="2019-01-14"
 # Supervisor start delay
-ENV SUPERVISOR_DELAY=1
+# ENV SUPERVISOR_DELAY=1
 
 # Install daemon packages# Install base packages
 RUN yum -y install epel-release && yum -y install supervisor syslog-ng cronie \
@@ -36,7 +36,8 @@ RUN printf '[supervisord]\nnodaemon=true\nuser=root\nlogfile=/var/log/supervisor
 # Create start_httpd.sh script
     printf '#!/bin/bash\nrm -rf /run/httpd/httpd.pid\nwhile true; do\n/usr/sbin/httpd -DFOREGROUND\nsleep 10\ndone' > /start_httpd.sh && \
 # Create start_supervisor.sh script
-    printf '#!/bin/bash\nsleep ${SUPERVISOR_DELAY}\n/usr/bin/supervisord -c /etc/supervisord.conf' > /start_supervisor.sh && \
+#    printf '#!/bin/bash\nsleep ${SUPERVISOR_DELAY}\n/usr/bin/supervisord -c /etc/supervisord.conf' > /start_supervisor.sh && \
+    printf '#!/bin/bash\n/usr/bin/supervisord -c /etc/supervisord.conf' > /start_supervisor.sh && \
 # Create syslog-ng start script    
     printf '#!/bin/bash\n/usr/sbin/syslog-ng --no-caps -F -p /var/run/syslogd.pid' > /start_syslog-ng.sh && \
 # Create Cron start script    
