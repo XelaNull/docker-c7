@@ -9,7 +9,7 @@ ENV REFRESHED_AT="2019-01-14"
 
 # Install daemon packages# Install base packages
 RUN yum -y install epel-release && yum -y install supervisor syslog-ng cronie \
-    wget vim-enhanced net-tools rsync sudo mlocate git logrotate && \
+    wget net-tools rsync sudo git logrotate && \
 # Configure Syslog-NG for use in a Docker container
     sed -i 's|system();|unix-stream("/dev/log");|g' /etc/syslog-ng/syslog-ng.conf
 
